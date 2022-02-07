@@ -5,9 +5,12 @@
 #include "hu_ssl.h"
 #include "hu_aap.h"
 #include "hu_aad.h"
+#include "config.h"
 #include <fstream>
 #include <memory>
 #include <endian.h>
+
+using json = nlohmann::json;
 
   const char * state_get (int state) {
     switch (state) {
@@ -389,6 +392,8 @@
 
 //  extern int wifi_direct;// = 0;//1;//0;
   int HUServer::hu_handle_ServiceDiscoveryRequest (int chan, byte * buf, int len) {                  // Service Discovery Request
+      config::configFile="headunit.json";
+      config::readConfig();
 
     HU::ServiceDiscoveryRequest request;
     if (!request.ParseFromArray(buf, len))
@@ -397,17 +402,17 @@
       logd ("Service Discovery Request: %s", request.phone_name().c_str());                               // S 0 CTR b src: HU  lft:   113  msg_type:     6 Service Discovery Response    S 0 CTR b 00000000 0a 08 08 01 12 04 0a 02 08 0b 0a 13 08 02 1a 0f
 
     HU::ServiceDiscoveryResponse carInfo;
-    carInfo.set_head_unit_name("mazda");
-    carInfo.set_car_model("Mazda");
-    carInfo.set_car_year("2016");
-    carInfo.set_car_serial("0001");
+    carInfo.set_head_unit_name(config::car_unit_name);
+    carInfo.set_car_model(config::car_model);
+    carInfo.set_car_year(config::car_year);
+    carInfo.set_car_serial(config::car_serial);
     carInfo.set_driver_pos(true);
-    carInfo.set_headunit_make("Mazda");
-    carInfo.set_headunit_model("Connect");
-    carInfo.set_sw_build("SWB1");
-    carInfo.set_sw_version("SWV1");
-    carInfo.set_can_play_native_media_during_vr(false);
-    carInfo.set_hide_clock(false);
+    carInfo.set_headunit_make(config::car_headunit_make);
+    carInfo.set_headunit_model(config::car_headunit_model);
+    carInfo.set_sw_build(config::car_sw_build);
+    carInfo.set_sw_version(config::car_sw_version);
+    carInfo.set_can_play_native_media_during_vr(config::car_can_play_native_media_during_vr);
+    carInfo.set_hide_clock(config::car_hide_clock);
 
     carInfo.mutable_channels()->Reserve(AA_CH_MAX);
 
@@ -416,8 +421,8 @@
     {
       auto inner = inputChannel->mutable_input_event_channel();
       auto tsConfig = inner->mutable_touch_screen_config();
-      tsConfig->set_width(800);
-      tsConfig->set_height(480);
+      tsConfig->set_width(config::resolutionX);
+      tsConfig->set_height(config::resolutionY);
 
       //No idea what these mean since they aren't the same as HU_INPUT_BUTTON
       inner->add_keycodes_supported(HUIB_MENU); // 0x01 Soft Left (Menu)
@@ -469,11 +474,21 @@
       auto inner = videoChannel->mutable_output_stream_channel();
       inner->set_type(HU::STREAM_TYPE_VIDEO);
       auto videoConfig = inner->add_video_configs();
-      videoConfig->set_resolution(HU::ChannelDescriptor::OutputStreamChannel::VideoConfig::VIDEO_RESOLUTION_800x480);
-      videoConfig->set_frame_rate(HU::ChannelDescriptor::OutputStreamChannel::VideoConfig::VIDEO_FPS_30);
+      switch (config::resolution){
+          case 1:
+              videoConfig->set_resolution(HU::ChannelDescriptor::OutputStreamChannel::VideoConfig::VIDEO_RESOLUTION_800x480);
+              break;
+          case 2:
+              videoConfig->set_resolution(HU::ChannelDescriptor::OutputStreamChannel::VideoConfig::VIDEO_RESOLUTION_1280x720);
+              break;
+          case 3:
+              videoConfig->set_resolution(HU::ChannelDescriptor::OutputStreamChannel::VideoConfig::VIDEO_RESOLUTION_1920x1080);
+              break;
+      }
+      videoConfig->set_frame_rate(HU::ChannelDescriptor::OutputStreamChannel::VideoConfig::VIDEO_FPS_60);
       videoConfig->set_margin_width(0);
       videoConfig->set_margin_height(0);
-      videoConfig->set_dpi(140);
+      videoConfig->set_dpi(225);
       inner->set_available_while_in_call(true);
 
       callbacks.CustomizeOutputChannel(AA_CH_VID, *inner);

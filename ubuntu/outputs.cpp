@@ -1,5 +1,6 @@
 #include "outputs.h"
 #include "main.h"
+#include "config.h"
 
 static /* Print all information about a key event */
 void
@@ -91,11 +92,11 @@ void VideoOutput::aa_touch_event(SDL_Window *window, HU::TouchInfo::TOUCH_ACTION
     float normx = float(x) / float(windowW);
     float normy = float(y) / float(windowH);
 
-    x = (unsigned int) (normx * 800);
+    x = (unsigned int) (normx * config::resolutionX); // TODO
 #if ASPECT_RATIO_FIX
-    y = (unsigned int) (normy * 450) + 15;
+    y = (unsigned int) (normy * (config::resolutionY - 30)) + 15;
 #else
-    y = (unsigned int) (normy * 480);
+    y = (unsigned int) (normy * config::resolutionY);
 #endif
 
     g_hu->hu_queue_command([action, x, y](IHUConnectionThreadInterface & s) {
@@ -118,11 +119,11 @@ void VideoOutput::aa_touch_event(SDL_Window *window, HU::TouchInfo::TOUCH_ACTION
 }
 
 gboolean VideoOutput::sdl_poll_event_wrapper(gpointer data){
+
     return reinterpret_cast<VideoOutput*>(data)->sdl_poll_event();
 }
 
 gboolean VideoOutput::sdl_poll_event() {
-
     SDL_Event event;
     SDL_MouseButtonEvent *mbevent;
     SDL_MouseMotionEvent *mmevent;
@@ -303,16 +304,26 @@ VideoOutput::VideoOutput(DesktopEventCallbacks* callbacks) : callbacks(callbacks
 
     gst_app_src_set_stream_type(vid_src, GST_APP_STREAM_TYPE_STREAM);
 
+    config::configFile="headunit.json";
+    config::readConfig();
+
+    SDL_WindowFlags sdl_flag;
+    if (config::fullscreen) {
+        sdl_flag = SDL_WINDOW_FULLSCREEN_DESKTOP;
+    } else {
+        sdl_flag = SDL_WINDOW_SHOWN;
+    }
 
     window = SDL_CreateWindow("Android Auto",
                               SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                           #if ASPECT_RATIO_FIX
                               //emulate the CMU stretching
-                              (int) (853 * g_dpi_scalefactor), (int) (480 * g_dpi_scalefactor),
+                              (int) (config::resolutionX * g_dpi_scalefactor), (int) (config::resolutionY * g_dpi_scalefactor),
                           #else
-                              (int) (800 * g_dpi_scalefactor), (int) (480 * g_dpi_scalefactor),
+                              (int) (config::resolutionX * g_dpi_scalefactor), (int) (config::resolutionY * g_dpi_scalefactor),
                           #endif
-                              SDL_WINDOW_SHOWN);
+                          sdl_flag
+                        );//SDL_WINDOW_SHOWN);
 
     SDL_SysWMinfo wmInfo;
     SDL_VERSION(&wmInfo.version);

@@ -2,5 +2,22 @@
     "launchOnDevice": true,
     "carGPS": true,
     "wifiTransport":true,
-    "phoneIpAddress": "192.168.43.1"
+    "phoneIpAddress": "192.168.2.5",
+    "video": {
+        "fullscreen": false,
+        "resolution": 1,
+        "dpi": 140
+    },
+    "car": {
+        "unit_name": "mazda",
+        "car_model": "Mazda",
+        "car_year": "2016",
+        "car_serial": "0001",
+        "headunit_make": "Mazda",
+        "headunit_model": "Connect",
+        "sw_build": "SWB1",
+        "sw_version": "SWV1",
+        "can_play_native_media_during_vr": false,
+        "hide_clock": false
+    }
 }

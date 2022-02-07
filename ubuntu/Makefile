@@ -6,6 +6,7 @@ LFLAGS= -g -rdynamic -pthread -ldl $(shell pkg-config --libs gstreamer-1.0 gstre
 CXXFLAGS= $(CFLAGS) -std=c++11 -Wno-narrowing
 
 
+SRCS += $(TOP)/common/config.cpp
 SRCS = $(TOP)/hu/hu_aap.cpp
 SRCS += $(TOP)/hu/hu_aad.cpp
 SRCS += $(TOP)/hu/hu_ssl.cpp
