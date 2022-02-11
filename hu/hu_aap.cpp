@@ -488,7 +488,7 @@ using json = nlohmann::json;
       videoConfig->set_frame_rate(HU::ChannelDescriptor::OutputStreamChannel::VideoConfig::VIDEO_FPS_60);
       videoConfig->set_margin_width(0);
       videoConfig->set_margin_height(0);
-      videoConfig->set_dpi(225);
+      videoConfig->set_dpi(config::dpi);
       inner->set_available_while_in_call(true);
 
       callbacks.CustomizeOutputChannel(AA_CH_VID, *inner);
